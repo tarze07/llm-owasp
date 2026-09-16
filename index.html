@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="pl" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Poligon LLM &amp; Agentów</title>
+<meta name="description" content="Interaktywna symulacja zagrożeń OWASP dla aplikacji LLM i systemów agentowych wraz z mechanizmami obrony.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%9B%A1%EF%B8%8F%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="assets/styles.css">
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <div class="topbar">
+      <div class="brand">
+        <svg class="logo" viewBox="0 0 24 24" fill="none" stroke="#5b8cff" stroke-width="1.8" aria-hidden="true">
+          <path d="M12 2.5 4 6v6c0 4.6 3.2 8.4 8 9.5 4.8-1.1 8-4.9 8-9.5V6l-8-3.5Z"/>
+          <path d="M9 12l2 2 4-4.5"/>
+        </svg>
+        <span>Poligon LLM &amp; Agentów
+          <small>OWASP Top 10 for LLM Apps 2025 &middot; Agentic AI Threats T1–T15</small>
+        </span>
+      </div>
+      <div class="spacer"></div>
+      <button class="btn" id="themeBtn" type="button">Jasny motyw</button>
+    </div>
+    <nav class="tabs" role="tablist" aria-label="Sekcje">
+      <button role="tab" data-tab="intro" aria-selected="true">Przegląd</button>
+      <button role="tab" data-tab="llm" aria-selected="false">Zagrożenia LLM (10)</button>
+      <button role="tab" data-tab="agent" aria-selected="false">Zagrożenia agentowe (15)</button>
+      <button role="tab" data-tab="lab" aria-selected="false">Symulator ataku</button>
+      <button role="tab" data-tab="check" aria-selected="false">Checklista dojrzałości</button>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <!-- ===================== PRZEGLĄD ===================== -->
+  <section id="tab-intro">
+    <h1>Zagrożenia generowane przez LLM i agentów — i jak im przeciwdziałać</h1>
+    <p class="lead">
+      Strona łączy katalog zagrożeń OWASP z symulatorem, w którym widać, jak pojedyncze wstrzyknięcie tekstu
+      zamienia się w realne działanie w systemach — oraz które zabezpieczenie i w którym miejscu ten łańcuch przerywa.
+      Wszystkie symulacje są w pełni lokalne i udawane: nie ma tu żadnego modelu, żadnych wywołań sieciowych i żadnego
+      działającego kodu ataku.
+    </p>
+
+    <div class="grid g3">
+      <div class="card kpi"><b>10</b><span>zagrożeń OWASP Top 10 for LLM Applications (2025)</span></div>
+      <div class="card kpi"><b>15</b><span>zagrożeń agentowych (Agentic AI Threats &amp; Mitigations)</span></div>
+      <div class="card kpi"><b>5</b><span>interaktywnych scenariuszy ataku w symulatorze</span></div>
+    </div>
+
+    <h2>Dlaczego agenci zmieniają wagę tych ryzyk</h2>
+    <div class="grid g2">
+      <div class="card">
+        <h3>Klasyczna aplikacja LLM</h3>
+        <p style="color:var(--muted);font-size:14px;margin:0">
+          Model generuje tekst, człowiek go czyta. Udane wstrzyknięcie promptu daje atakującemu
+          <em>wpływ na treść</em>: mylącą odpowiedź, wyciek fragmentu kontekstu, obejście reguł stylu.
+          Szkoda jest realna, ale ograniczona do jednej odpowiedzi.
+        </p>
+      </div>
+      <div class="card">
+        <h3>System agentowy</h3>
+        <p style="color:var(--muted);font-size:14px;margin:0">
+          Model planuje, wywołuje narzędzia, zapisuje pamięć i rozmawia z innymi agentami. To samo wstrzyknięcie
+          daje atakującemu <em>wpływ na działanie</em>: wysłane maile, zmienione uprawnienia, wykonany kod, trwały
+          wpis w pamięci, który zadziała w kolejnych sesjach i u innych użytkowników.
+        </p>
+      </div>
+    </div>
+
+    <div class="note" style="margin-top:14px">
+      <b>Zasada przewodnia:</b> nie da się „doprosić” modelu o bezpieczeństwo. Każda instrukcja w system prompcie
+      jest tylko sugestią dla statystycznego generatora tekstu. Egzekwowalne są wyłącznie granice poza modelem:
+      zakres tokenów, schematy narzędzi, sandbox, limity, zgody człowieka i niezmienny audyt.
+    </div>
+
+    <h2>Mapa: skąd bierze się szkoda</h2>
+    <div class="card">
+      <div class="flow" id="mapFlow"></div>
+    </div>
+  </section>
+
+  <!-- ===================== LLM TOP 10 ===================== -->
+  <section id="tab-llm" hidden>
+    <h1>OWASP Top 10 for LLM Applications (2025)</h1>
+    <p class="lead">Dziesięć kategorii ryzyka dla aplikacji opartych o modele językowe. Przy każdej: mechanizm, konkretny przykład i przeciwdziałanie.</p>
+    <div class="row" style="margin-bottom:14px">
+      <div class="chips" id="llmFilter"></div>
+    </div>
+    <div class="grid g2" id="llmList"></div>
+  </section>
+
+  <!-- ===================== AGENTIC ===================== -->
+  <section id="tab-agent" hidden>
+    <h1>Zagrożenia systemów agentowych (T1–T15)</h1>
+    <p class="lead">
+      Katalog OWASP „Agentic AI – Threats and Mitigations”. Te zagrożenia nie zastępują Top 10 dla LLM —
+      nakładają się na nie, bo agent dodaje cztery nowe powierzchnie ataku: <b>narzędzia</b>, <b>pamięć</b>,
+      <b>autonomię planowania</b> i <b>komunikację między agentami</b>.
+    </p>
+    <div class="grid g2" id="agList"></div>
+  </section>
+
+  <!-- ===================== SYMULATOR ===================== -->
+  <section id="tab-lab" hidden>
+    <h1>Symulator ataku i obrony</h1>
+    <p class="lead">
+      Wybierz scenariusz, włącz lub wyłącz zabezpieczenia i uruchom przebieg. Symulator pokazuje krok po kroku,
+      gdzie łańcuch ataku zostaje przerwany, a gdzie tylko wykryty. Wszystko liczone lokalnie w przeglądarce.
+    </p>
+
+    <div class="lab-grid">
+      <div class="grid" style="gap:14px">
+        <div class="card">
+          <h3>1. Scenariusz</h3>
+          <select id="scenSel" aria-label="Scenariusz"></select>
+          <p id="scenIntro" style="color:var(--muted);font-size:13.5px;margin:10px 0 8px"></p>
+          <div class="chips" id="scenTags"></div>
+          <h3 style="margin-top:14px">Ładunek atakującego</h3>
+          <div class="term" id="scenPayload"></div>
+        </div>
+
+        <div class="card">
+          <div class="row" style="justify-content:space-between">
+            <h3 style="margin:0">2. Zabezpieczenia</h3>
+            <div class="row" style="gap:6px">
+              <button class="btn" id="allOn" type="button">Wszystkie</button>
+              <button class="btn danger" id="allOff" type="button">Żadne</button>
+            </div>
+          </div>
+          <div class="grid" id="defBox" style="gap:8px;margin-top:10px"></div>
+        </div>
+      </div>
+
+      <div class="grid" style="gap:14px">
+        <div class="card">
+          <div class="row" style="justify-content:space-between;margin-bottom:10px">
+            <h3 style="margin:0">3. Przebieg</h3>
+            <div class="row" style="gap:6px">
+              <button class="btn primary" id="runBtn" type="button">Uruchom atak</button>
+              <button class="btn" id="resetBtn" type="button">Wyczyść</button>
+            </div>
+          </div>
+          <div class="log" id="log" aria-live="polite"></div>
+        </div>
+
+        <div class="card">
+          <h3>Skutek</h3>
+          <div class="row" style="justify-content:space-between;font-size:13px;color:var(--muted)">
+            <span>Poziom szkody</span><span id="dmgVal">0 / 100</span>
+          </div>
+          <div class="meter" style="margin:6px 0 12px"><i id="dmgBar"></i></div>
+          <div id="verdict" style="font-size:14px;color:var(--muted)">Uruchom symulację, aby zobaczyć wynik.</div>
+          <div class="flow" id="chain" style="margin-top:12px"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== CHECKLISTA ===================== -->
+  <section id="tab-check" hidden>
+    <h1>Checklista dojrzałości zabezpieczeń</h1>
+    <p class="lead">
+      Osiemnaście kontroli wywiedzionych z obu katalogów OWASP. Zaznacz to, co faktycznie działa w Twoim
+      systemie — wynik zapisuje się lokalnie w przeglądarce.
+    </p>
+    <div class="card" style="margin-bottom:16px">
+      <div class="row" style="justify-content:space-between;font-size:14px">
+        <b id="scoreTxt">0 / 44 punktów</b>
+        <span id="scoreLbl" class="tag crit">Krytyczne braki</span>
+      </div>
+      <div class="meter" style="margin-top:8px"><i id="scoreBar"></i></div>
+      <div class="row" style="margin-top:12px">
+        <button class="btn" id="clearChk" type="button">Wyczyść zaznaczenia</button>
+        <span style="color:var(--dim);font-size:13px">Wagi: kontrola krytyczna = 3 pkt, wspierająca = 2 pkt.</span>
+      </div>
+    </div>
+    <div id="chkBox" class="grid" style="gap:16px"></div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    Materiał edukacyjny. Zagrożenia i przeciwdziałania opracowane na podstawie
+    <a href="https://genai.owasp.org/llm-top-10/" rel="noopener" target="_blank">OWASP Top 10 for LLM Applications (2025)</a>
+    oraz <a href="https://genai.owasp.org/resource/agentic-ai-threats-and-mitigations/" rel="noopener" target="_blank">OWASP Agentic AI – Threats and Mitigations</a>.
+    Symulacje są fikcyjne i nie zawierają działającego kodu ataku.
+  </div>
+</footer>
+
+<script src="assets/data.js"></script>
+<script src="assets/sim.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>
